@@ -9,8 +9,8 @@ OBJECTS = $(SOURCES:$(SRC_PATH)/%.cpp=$(BUILD_PATH)/%.o)
 DEPS = $(OBJECTS:.o=.d)
 
 COMPILE_FLAGS = -std=c++11
-INCLUDES = -I Include
-LIBS = 
+INCLUDES = -I Include `pkg-config --cflags gtk+-3.0`
+LIBS = `pkg-config --libs gtk+-3.0`
 
 .PHONY: default_target
 default_target: release
