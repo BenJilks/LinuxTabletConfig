@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/gtk-3.0"
+                "/usr/include/gtk-3.0",
+                "/usr/include/libwacom-1.0"
             ],
             "defines": [],
             "compilerPath": "/bin/gcc",
