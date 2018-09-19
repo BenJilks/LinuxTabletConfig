@@ -21,6 +21,11 @@ release: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS)
 release: dirs
 	@$(MAKE) all
 
+.PHONY: debug
+debug: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) -g
+debug: dirs
+	@$(MAKE) all
+
 .PHONY: dirs
 dirs:
 	@mkdir -p $(dir $(OBJECTS))
@@ -35,12 +40,12 @@ clean:
 all: $(BIN_NAME)
 
 $(BIN_NAME): $(OBJECTS)
-	$(CXX) $(OBJECTS) $(LIBS) -g -o $(BIN_PATH)/$@
+	$(CXX) $(OBJECTS) $(LIBS) -o $(BIN_PATH)/$@
 
 -include $(DEPS)
 
 $(BUILD_PATH)/%.o: $(SRC_PATH)/%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -g -MP -MMD -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@
 
 .PHONY: install
 install: 
