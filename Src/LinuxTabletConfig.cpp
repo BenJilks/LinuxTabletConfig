@@ -1,5 +1,10 @@
 #include <iostream>
-#include <libwacom-1.0/libwacom/libwacom.h>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/extensions/XInput.h>
+#include <X11/extensions/Xrandr.h>
+#include <X11/extensions/Xinerama.h>
+#include <X11/XKBlib.h>
 
 /*
 #include <gtk/gtk.h>
@@ -27,7 +32,33 @@ int main (int argc, char **argv)
 }
 */
 
+void scan_wacom()
+{
+	XDeviceInfo *info;
+	int	ndevices, i;
+	Atom wacom_prop;
+	Display *dpy;
+
+	dpy = XOpenDisplay(nullptr);
+	wacom_prop = XInternAtom(dpy, XI_TABLET, True);
+	if (wacom_prop == None)
+		return;
+
+	info = XListInputDevices(dpy, &ndevices);
+	for (i = 0; i < ndevices; i++)
+	{
+		if (info[i].use == IsXPointer || info[i].use == IsXKeyboard)
+			continue;
+
+		if (info[i].type == wacom_prop)
+			printf("%s: %i\n", info[i].name, info[i].id);
+	}
+
+	XFreeDeviceList(info);
+}
+
 int main()
 {
-
+	scan_wacom();
+	return 0;
 }
