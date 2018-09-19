@@ -1,4 +1,5 @@
 #include "DeviceManager.hpp"
+#include <iostream>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/XInput.h>
@@ -29,7 +30,7 @@ DeviceManager::DeviceManager()
 // Return a list of device names
 vector<string> DeviceManager::DeviceNames()
 {
-    vector<string> names(devices.size());
+    vector<string> names;
     for (Device device : devices)
         names.push_back(device.GetName());
     return names;

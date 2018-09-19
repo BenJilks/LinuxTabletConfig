@@ -26,7 +26,7 @@ public:
     DeviceManager();
     vector<string> DeviceNames();
 
-    inline bool HasDevices() const { devices.size() > 0; }
+    inline bool HasDevices() const { return devices.size() > 0; }
 
     ~DeviceManager();
 
