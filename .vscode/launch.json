@@ -26,11 +26,11 @@
             },
             
             "linux": {
-                "program": "bin/LinuxTabletConfig",
+                "program": "${workspaceFolder}/bin/LinuxTabletConfig",
                 "MIMode": "gdb"
             },
             "windows": {
-                "program": "bin/LinuxTabletConfig.exe",
+                "program": "${workspaceFolder}/bin/LinuxTabletConfig.exe",
                 "MIMode": "gdb",
                 "miDebuggerPath": "C:/mingw-64/bin/gdb.exe"
             },
