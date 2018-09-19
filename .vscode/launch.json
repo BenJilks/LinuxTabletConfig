@@ -13,6 +13,7 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": true,
+            "preLaunchTask": "Debug Build",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
