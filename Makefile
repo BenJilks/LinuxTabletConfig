@@ -49,4 +49,4 @@ $(BUILD_PATH)/%.o: $(SRC_PATH)/%.cpp
 
 .PHONY: install
 install: 
-	cp LinuxTabletConfig /bin/LinuxTabletConfig
+	cp bin/LinuxTabletConfig /bin/LinuxTabletConfig

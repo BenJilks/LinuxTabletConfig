@@ -1,37 +1,45 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/extensions/XInput.h>
+#include <X11/extensions/Xrandr.h>
+#include <X11/extensions/Xinerama.h>
+#include <X11/XKBlib.h>
 using std::vector;
 using std::string;
 
 class Device
 {
 public:
-    Device(string name, int id) :
-        name(name), id(id) {}
-    
+    Device(Display *dpy, string name, long unsigned int id);
+
     inline string GetName() const { return name; }
     inline int GetId() const { return id; }
+    ~Device();
 
 private:
     string name;
-    int id;
+    long unsigned int id;
+    XDevice *dev;
+    Display *dpy;
 
 };
 
-struct _XDisplay;
 class DeviceManager
 {
 public:
     DeviceManager();
     vector<string> DeviceNames();
+    Device *DeviceByName(string name);
 
     inline bool HasDevices() const { return devices.size() > 0; }
 
     ~DeviceManager();
 
 private:
-    vector<Device> devices;
-    _XDisplay *dpy;
+    vector<Device*> devices;
+    Display *dpy;
 
 };

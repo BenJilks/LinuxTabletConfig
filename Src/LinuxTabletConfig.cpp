@@ -3,8 +3,19 @@
 #include "DeviceManager.hpp"
 
 DeviceManager dm;
+Device *curr_dev;
 
-GtkWidget *device_select()
+static void on_select_devices(GtkComboBox *combo_box, gpointer user_data)
+{
+	if (gtk_combo_box_get_active(combo_box) != 0)
+	{
+		gchar *name = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo_box));
+		curr_dev = dm.DeviceByName(name);
+		g_free (name);
+	}
+}
+
+static GtkWidget *device_select()
 {
 	GtkWidget *dev_select = gtk_grid_new();
 	GtkWidget *dev_label = gtk_label_new("Device: ");
@@ -19,7 +30,7 @@ GtkWidget *device_select()
 	return dev_select;
 }
 
-GtkWidget *tablet_settings()
+static GtkWidget *tablet_settings()
 {
 	GtkWidget *settings = gtk_button_new_with_label("Testing");
 	gtk_widget_set_hexpand(settings, TRUE);
