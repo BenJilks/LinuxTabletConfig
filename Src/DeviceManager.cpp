@@ -1,10 +1,23 @@
 #include "DeviceManager.hpp"
 #include <iostream>
 
-Device::Device(Display *dpy, string name, long unsigned int id) :
-    dpy(dpy), name(name), id(id)
+Device::Device(Display *dpy, XDeviceInfo info) :
+    dpy(dpy), name(info.name), id(info.id), info(info)
 {
     dev = XOpenDevice(dpy, id);
+}
+
+int Device::GetMode()
+{
+    XValuatorInfoPtr v = (XValuatorInfoPtr)info.inputclassinfo;
+    for (int i = 0; i < info.num_classes; i++)
+    {
+        if (v->c_class == ValuatorClass)
+            return v->mode;
+        v = (XValuatorInfoPtr)((char*)v + v->length);
+    }
+
+    return 0;
 }
 
 Device::~Device()
@@ -28,7 +41,7 @@ DeviceManager::DeviceManager()
     {
         if (info[i].type == tablet_type)
         {
-            Device* dev = new Device(dpy, info[i].name, info[i].id);
+            Device* dev = new Device(dpy, info[i]);
             devices.emplace_back(dev);
         }
     }

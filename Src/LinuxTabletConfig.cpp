@@ -32,9 +32,19 @@ static GtkWidget *device_select()
 
 static GtkWidget *tablet_settings()
 {
-	GtkWidget *settings = gtk_button_new_with_label("Testing");
+	GtkWidget *settings = gtk_grid_new();
 	gtk_widget_set_hexpand(settings, TRUE);
 	gtk_widget_set_vexpand(settings, TRUE);
+
+	GtkWidget *mode_l = gtk_label_new("Mode");
+	GtkWidget *mode_box = gtk_combo_box_text_new();
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(mode_box), "Absolute");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(mode_box), "Relitive");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), 0);
+	gtk_widget_set_hexpand(mode_box, TRUE);
+	gtk_widget_set_margin_left(mode_box, 10);
+	gtk_grid_attach(GTK_GRID(settings), mode_l, 0, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(settings), mode_box, 1, 0, 1, 1);
 	return settings;
 }
 

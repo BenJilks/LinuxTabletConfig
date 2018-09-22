@@ -10,10 +10,14 @@
 using std::vector;
 using std::string;
 
+#define MODE_ABSOLUTE 0
+#define MODE_RELATIVE 1
+
 class Device
 {
 public:
-    Device(Display *dpy, string name, long unsigned int id);
+    Device(Display *dpy, XDeviceInfo info);
+    int GetMode();
 
     inline string GetName() const { return name; }
     inline int GetId() const { return id; }
@@ -22,6 +26,7 @@ public:
 private:
     string name;
     long unsigned int id;
+    XDeviceInfo info;
     XDevice *dev;
     Display *dpy;
 
