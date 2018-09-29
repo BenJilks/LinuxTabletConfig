@@ -10,8 +10,8 @@ OBJECTS = $(SOURCES:$(SRC_PATH)/%.cpp=$(BUILD_PATH)/%.o)
 DEPS = $(OBJECTS:.o=.d)
 
 COMPILE_FLAGS = -std=c++11
-INCLUDES = -I Include `pkg-config --cflags gtk+-3.0`
-LIBS = `pkg-config --libs gtk+-3.0` -lX11 -lXi -lXmu
+INCLUDES = -I Include `pkg-config --cflags gtk+-3.0 xrandr`
+LIBS = `pkg-config --libs gtk+-3.0 xrandr` -lX11 -lXi -lXmu
 
 .PHONY: default_target
 default_target: release

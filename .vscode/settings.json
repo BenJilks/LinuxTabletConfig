@@ -42,5 +42,5 @@
         "tuple": "cpp",
         "utility": "cpp"
     },
-    "C_Cpp.intelliSenseEngineFallback": "Enabled"
+    "C_Cpp.intelliSenseEngineFallback": "Disabled"
 }

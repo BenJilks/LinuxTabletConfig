@@ -1,10 +1,12 @@
 #include <iostream>
 #include <gtk/gtk.h>
 #include "DeviceManager.hpp"
+#include "Mapper.hpp"
 
 // Devices
 static const DeviceManager dm;
 static Device *curr_dev = nullptr;
+static Mapper mp(dm);
 
 // Control widgets
 static GtkWidget *mode_box = nullptr;
@@ -56,9 +58,26 @@ static void on_select_mode(GtkComboBox *combo_box, gpointer user_data)
 	curr_dev->SetMode(mode);
 }
 
+static gboolean on_mapper_draw(GtkWidget *widget, cairo_t *cr, gpointer user_data)
+{
+	unsigned int width, height;
+	GtkStyleContext *context;
+
+	// Fetch draw area info
+	context = gtk_widget_get_style_context(widget);
+	width = gtk_widget_get_allocated_width(widget);
+	height = gtk_widget_get_allocated_height(widget);
+
+	// Draw mapper contentbackground
+	gtk_render_background(context, cr, 0, 0, width, height);
+	mp.Draw(cr, width, height);
+
+	return FALSE;
+}
+
 static GtkWidget *tablet_settings()
 {
-	GtkWidget *settings, *mode_l;
+	GtkWidget *settings, *mode_l, *mapper;
 
 	// Create settings pannel
 	settings = gtk_grid_new();
@@ -80,9 +99,16 @@ static GtkWidget *tablet_settings()
 	else
 		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), 0);
 
+	// Create tablet map UI
+	mapper = gtk_drawing_area_new();
+	gtk_widget_set_size_request(mapper, 200, 200);
+	gtk_widget_set_margin_top(mapper, 10);
+	g_signal_connect(mapper, "draw", G_CALLBACK(on_mapper_draw), NULL);
+
 	// Add widgets to settings pannel
 	gtk_grid_attach(GTK_GRID(settings), mode_l, 0, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(settings), mode_box, 1, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(settings), mapper, 0, 1, 2, 1);
 	return settings;
 }
 

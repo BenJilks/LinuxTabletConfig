@@ -50,7 +50,7 @@ DeviceManager::DeviceManager()
 
     // Fetch the xinput devices
     int	ndevices;
-    XDeviceInfo *info = XListInputDevices(dpy, &ndevices);
+    info = XListInputDevices(dpy, &ndevices);
     devices.reserve(ndevices);
 
     // Load the tablet devices
@@ -66,9 +66,17 @@ DeviceManager::DeviceManager()
             }
         }
     }
-    
-    // Clean up device list
-    XFreeDeviceList(info);
+
+    // Fetch monitor info
+    int monitor_count;
+    Window root = RootWindow(dpy, DefaultScreen(dpy));
+    XRRMonitorInfo *m = XRRGetMonitors(dpy, root, True, &monitor_count);
+    for (int i = 0; i < monitor_count; i++)
+    {
+        XRRMonitorInfo monitor = m[i];
+        string name = XGetAtomName(dpy, monitor.name);
+        monitors.emplace_back(name, monitor.width, monitor.height);
+    }
 }
 
 // Returns the device with that name
@@ -97,5 +105,9 @@ DeviceManager::~DeviceManager()
         delete dev;
     devices.clear();
 
+    // Clean up device list
+    XFreeDeviceList(info);
+
+    // Close X display
     XCloseDisplay(dpy);
 }

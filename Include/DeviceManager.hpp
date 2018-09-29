@@ -34,6 +34,25 @@ private:
     Display *dpy;
 };
 
+class Monitor
+{
+public:
+    Monitor(string name, int w, int h) :
+        name(name), width(w), height(h), asp((float)w / (float)h) {}
+    
+    inline string GetName() const { return name; }
+    inline int GetWidth() const { return width; }
+    inline int GetHeight() const { return height; }
+    inline float GetAspectRatio() const { return asp; }
+
+private:
+    string name;
+    int width;
+    int height;
+    float asp;
+
+};
+
 class DeviceManager
 {
 public:
@@ -43,11 +62,15 @@ public:
 
     inline bool HasDevices() const { return devices.size() > 0; }
     inline Device* DefaultDevice() const { return devices[0]; }
+    inline const Monitor& GetMonitor(int m) const { return monitors[m]; }
+    inline int GetMonitorCount() const { return monitors.size(); }
 
     ~DeviceManager();
 
 private:
     vector<Device*> devices;
+    vector<Monitor> monitors;
+    XDeviceInfo *info;
     Display *dpy;
 
 };
