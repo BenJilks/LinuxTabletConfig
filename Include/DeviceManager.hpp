@@ -18,28 +18,31 @@ class Device
 public:
     Device(Display *dpy, XDeviceInfo info);
     int GetMode();
+    void SetMode(int mode);
 
     inline string GetName() const { return name; }
     inline int GetId() const { return id; }
     ~Device();
 
 private:
+    XValuatorInfoPtr GetClass(XID c_class);
+
     string name;
     long unsigned int id;
     XDeviceInfo info;
     XDevice *dev;
     Display *dpy;
-
 };
 
 class DeviceManager
 {
 public:
     DeviceManager();
-    vector<string> DeviceNames();
-    Device *DeviceByName(string name);
+    vector<string> DeviceNames() const;
+    Device *DeviceByName(string name) const;
 
     inline bool HasDevices() const { return devices.size() > 0; }
+    inline Device* DefaultDevice() const { return devices[0]; }
 
     ~DeviceManager();
 

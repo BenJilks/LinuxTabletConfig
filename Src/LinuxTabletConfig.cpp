@@ -2,47 +2,85 @@
 #include <gtk/gtk.h>
 #include "DeviceManager.hpp"
 
-DeviceManager dm;
-Device *curr_dev;
+// Devices
+static const DeviceManager dm;
+static Device *curr_dev = nullptr;
+
+// Control widgets
+static GtkWidget *mode_box = nullptr;
 
 static void on_select_devices(GtkComboBox *combo_box, gpointer user_data)
 {
-	if (gtk_combo_box_get_active(combo_box) != 0)
-	{
-		gchar *name = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo_box));
-		curr_dev = dm.DeviceByName(name);
-		g_free (name);
-	}
+	// Fetch selected device
+	gchar *name = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo_box));
+	curr_dev = dm.DeviceByName(name);
+	g_free(name);
+
+	// If the mode box has been loaded, display the current mode
+	if (mode_box != nullptr)
+		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), curr_dev->GetMode());
 }
 
 static GtkWidget *device_select()
 {
-	GtkWidget *dev_select = gtk_grid_new();
-	GtkWidget *dev_label = gtk_label_new("Device: ");
+	GtkWidget *dev_select, *dev_label, 
+		*combo_box;
+
+	// Create device select UI
+	dev_select = gtk_grid_new();
+	dev_label = gtk_label_new("Device: ");
 	gtk_grid_attach(GTK_GRID(dev_select), dev_label, 0, 0, 1, 1);
 
-	GtkWidget *combo_box = gtk_combo_box_text_new();
+	// Create device selection box
+	combo_box = gtk_combo_box_text_new();
 	for (string device : dm.DeviceNames())
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combo_box), device.c_str());
+	g_signal_connect(combo_box, "changed", G_CALLBACK(on_select_devices), NULL);
 	gtk_combo_box_set_active(GTK_COMBO_BOX(combo_box), 0);
 	gtk_widget_set_hexpand(combo_box, TRUE);
 	gtk_grid_attach(GTK_GRID(dev_select), combo_box, 1, 0, 1, 1);
 	return dev_select;
 }
 
+static void on_select_mode(GtkComboBox *combo_box, gpointer user_data)
+{
+	// If a device has not been selected, then ignore command
+	if (curr_dev == nullptr)
+	{
+		printf("Error: No device selected\n");
+		return;
+	}
+
+	// Set tablet mode
+	int mode = gtk_combo_box_get_active(combo_box);
+	curr_dev->SetMode(mode);
+}
+
 static GtkWidget *tablet_settings()
 {
-	GtkWidget *settings = gtk_grid_new();
+	GtkWidget *settings, *mode_l;
+
+	// Create settings pannel
+	settings = gtk_grid_new();
 	gtk_widget_set_hexpand(settings, TRUE);
 	gtk_widget_set_vexpand(settings, TRUE);
 
-	GtkWidget *mode_l = gtk_label_new("Mode");
-	GtkWidget *mode_box = gtk_combo_box_text_new();
+	// Create mode setting UI
+	mode_l = gtk_label_new("Mode");
+	mode_box = gtk_combo_box_text_new();
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(mode_box), "Absolute");
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(mode_box), "Relitive");
-	gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), 0);
+	g_signal_connect(mode_box, "changed", G_CALLBACK(on_select_mode), NULL);
 	gtk_widget_set_hexpand(mode_box, TRUE);
-	gtk_widget_set_margin_left(mode_box, 10);
+	gtk_widget_set_margin_start(mode_box, 10);
+	
+	// If a device has been selected, then set value, otherwise set to default
+	if (curr_dev != nullptr)
+		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), curr_dev->GetMode());
+	else
+		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), 0);
+
+	// Add widgets to settings pannel
 	gtk_grid_attach(GTK_GRID(settings), mode_l, 0, 0, 1, 1);
 	gtk_grid_attach(GTK_GRID(settings), mode_box, 1, 0, 1, 1);
 	return settings;
@@ -52,10 +90,12 @@ static void activate(GtkApplication* app, gpointer user_data)
 {
 	GtkWidget *window;
 
+	// Set window prefrences
 	window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), "Linux Tablet Config");
 	gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
 
+	// Create UI content
 	GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
 	GtkWidget *dev_select = device_select();
 	GtkWidget *settings = tablet_settings();
@@ -63,6 +103,7 @@ static void activate(GtkApplication* app, gpointer user_data)
 	gtk_container_add(GTK_CONTAINER(content), settings);
 	gtk_container_add(GTK_CONTAINER(window), content);
 
+	// Show UI content
 	gtk_widget_show_all(window);
 }
 

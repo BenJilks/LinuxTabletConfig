@@ -4,24 +4,41 @@
 Device::Device(Display *dpy, XDeviceInfo info) :
     dpy(dpy), name(info.name), id(info.id), info(info)
 {
+    // Open the Xinput device
     dev = XOpenDevice(dpy, id);
 }
 
-int Device::GetMode()
+XValuatorInfoPtr Device::GetClass(XID c_class)
 {
     XValuatorInfoPtr v = (XValuatorInfoPtr)info.inputclassinfo;
     for (int i = 0; i < info.num_classes; i++)
     {
         if (v->c_class == ValuatorClass)
-            return v->mode;
+            return v;
         v = (XValuatorInfoPtr)((char*)v + v->length);
     }
+
+    return nullptr;
+}
+
+int Device::GetMode()
+{
+    XValuatorInfoPtr v = GetClass(ValuatorClass);
+    if (v != nullptr)
+        return v->mode ? 0 : 1;
 
     return 0;
 }
 
+void Device::SetMode(int mode)
+{
+    XSetDeviceMode(dpy, dev, mode ? 0 : 1);
+    XFlush(dpy);
+}
+
 Device::~Device()
 {
+    // Close the device when deleted
     XCloseDevice(dpy, dev);
 }
 
@@ -29,7 +46,7 @@ DeviceManager::DeviceManager()
 {
     // Open display and get tablet type id
     dpy = XOpenDisplay(nullptr);
-    Atom tablet_type = XInternAtom(dpy, XI_TABLET, True);
+    Atom styles_type = XInternAtom(dpy, "STYLUS", True);
 
     // Fetch the xinput devices
     int	ndevices;
@@ -39,10 +56,14 @@ DeviceManager::DeviceManager()
     // Load the tablet devices
     for (int i = 0; i < ndevices; i++)
     {
-        if (info[i].type == tablet_type)
+        if (info[i].type != 0L)
         {
-            Device* dev = new Device(dpy, info[i]);
-            devices.emplace_back(dev);
+            printf("%s (%s)\n", info[i].name, XGetAtomName(dpy, info[i].type));
+            if (info[i].type == styles_type)
+            {
+                Device* dev = new Device(dpy, info[i]);
+                devices.emplace_back(dev);
+            }
         }
     }
     
@@ -51,7 +72,7 @@ DeviceManager::DeviceManager()
 }
 
 // Returns the device with that name
-Device *DeviceManager::DeviceByName(string name)
+Device *DeviceManager::DeviceByName(string name) const
 {
     for (Device *dev : devices)
         if (dev->GetName() == name)
@@ -60,7 +81,7 @@ Device *DeviceManager::DeviceByName(string name)
 }
 
 // Return a list of device names
-vector<string> DeviceManager::DeviceNames()
+vector<string> DeviceManager::DeviceNames() const
 {
     vector<string> names;
     names.reserve(devices.size());
