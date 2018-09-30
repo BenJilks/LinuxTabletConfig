@@ -77,5 +77,20 @@ void Mapper::Draw(cairo_t *cr, int width, int height)
     rect.x = width / 2 - rect.width / 2;
     rect.y = start_y * height + VERT_BOARDER;
     rect.height = (end_y * height) - rect.y - VERT_BOARDER*2;
-    DrawMonitor(cr, monitor.GetName(), rect);
+    DrawMonitor(cr, monitor.DisplayInfo(), rect);
+}
+
+void Mapper::MouseMoved(int x, int y)
+{
+
+}
+
+void Mapper::MouseDown()
+{
+
+}
+
+void Mapper::MouseUp()
+{
+
 }

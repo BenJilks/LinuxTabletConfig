@@ -78,6 +78,37 @@ static gboolean on_mapper_draw(GtkWidget *widget, cairo_t *cr, gpointer user_dat
 	return FALSE;
 }
 
+static gboolean on_mapper_mouse_move(GtkWidget *widget, GdkEventMotion *event)
+{
+	int x, y;
+	GdkModifierType state;
+
+	// Fetch mouse position and state
+	if (event->is_hint)
+		gdk_window_get_device_position(event->window, event->device, &x, &y, &state);
+	else
+	{
+		x = event->x;
+		y = event->y;
+		state = (GdkModifierType)event->state;
+	}
+
+	mp.MouseMoved(x, y);
+	return TRUE;
+}
+
+static gboolean on_mapper_button_down(GtkWidget *widget, GdkEventButton *event)
+{
+	if (event->button == 1)
+	{
+		if (event->state == 0x100)
+			mp.MouseDown();
+		else
+			mp.MouseUp();
+	}
+	return TRUE;
+}
+
 static GtkWidget *tablet_settings()
 {
 	GtkWidget *settings, *mode_l, *mapper;
@@ -107,6 +138,10 @@ static GtkWidget *tablet_settings()
 	gtk_widget_set_size_request(mapper, 400, 200);
 	gtk_widget_set_vexpand(mapper, True);
 	gtk_widget_set_margin_top(mapper, 10);
+	gtk_widget_set_events(mapper, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+	g_signal_connect(mapper, "motion_notify_event", G_CALLBACK(on_mapper_mouse_move), NULL);
+	g_signal_connect(mapper, "button_press_event", G_CALLBACK(on_mapper_button_down), NULL);
+	g_signal_connect(mapper, "button_release_event", G_CALLBACK(on_mapper_button_down), NULL);
 	g_signal_connect(mapper, "draw", G_CALLBACK(on_mapper_draw), NULL);
 
 	// Add widgets to settings pannel

@@ -11,6 +11,9 @@ class Mapper
 public:
     Mapper(const DeviceManager& dm);
     void Draw(cairo_t *cr, int width, int height);
+    void MouseMoved(int x, int y);
+    void MouseDown();
+    void MouseUp();
 
 private:
     void DrawMonitor(cairo_t *cr, string name, GdkRectangle rect);
