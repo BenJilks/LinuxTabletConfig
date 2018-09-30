@@ -13,6 +13,9 @@ public:
     void Draw(cairo_t *cr, int width, int height);
 
 private:
+    void DrawMonitor(cairo_t *cr, string name, GdkRectangle rect);
+    void DrawCorners(cairo_t *cr, GdkRectangle rect);
+
     float start_x, start_y;
     float end_x, end_y;
     const DeviceManager& dm;

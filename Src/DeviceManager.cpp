@@ -42,6 +42,13 @@ Device::~Device()
     XCloseDevice(dpy, dev);
 }
 
+string Monitor::DisplayInfo() const
+{
+    return name + " (" + 
+        std::to_string(width) + "x" + 
+        std::to_string(height) + ")";
+}
+
 DeviceManager::DeviceManager()
 {
     // Open display and get tablet type id

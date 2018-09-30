@@ -39,6 +39,7 @@ class Monitor
 public:
     Monitor(string name, int w, int h) :
         name(name), width(w), height(h), asp((float)w / (float)h) {}
+    string DisplayInfo() const;
     
     inline string GetName() const { return name; }
     inline int GetWidth() const { return width; }
