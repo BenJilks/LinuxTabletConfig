@@ -15,12 +15,15 @@ static void on_select_devices(GtkComboBox *combo_box, gpointer user_data)
 {
 	// Fetch selected device
 	gchar *name = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo_box));
-	curr_dev = dm.DeviceByName(name);
-	g_free(name);
+	if (name != nullptr)
+	{
+		curr_dev = dm.DeviceByName(name);
+		g_free(name);
 
-	// If the mode box has been loaded, display the current mode
-	if (mode_box != nullptr)
-		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), curr_dev->GetMode());
+		// If the mode box has been loaded, display the current mode
+		if (mode_box != nullptr)
+			gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), curr_dev->GetMode());
+	}
 }
 
 static GtkWidget *device_select()
@@ -101,7 +104,8 @@ static GtkWidget *tablet_settings()
 
 	// Create tablet map UI
 	mapper = gtk_drawing_area_new();
-	gtk_widget_set_size_request(mapper, 200, 200);
+	gtk_widget_set_size_request(mapper, 400, 200);
+	gtk_widget_set_vexpand(mapper, True);
 	gtk_widget_set_margin_top(mapper, 10);
 	g_signal_connect(mapper, "draw", G_CALLBACK(on_mapper_draw), NULL);
 
@@ -123,6 +127,11 @@ static void activate(GtkApplication* app, gpointer user_data)
 
 	// Create UI content
 	GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+	gtk_widget_set_margin_start(content, 10);
+	gtk_widget_set_margin_end(content, 10);
+	gtk_widget_set_margin_top(content, 10);
+	gtk_widget_set_margin_bottom(content, 10);
+	
 	GtkWidget *dev_select = device_select();
 	GtkWidget *settings = tablet_settings();
 	gtk_container_add(GTK_CONTAINER(content), dev_select);
