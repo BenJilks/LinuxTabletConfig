@@ -94,6 +94,7 @@ static gboolean on_mapper_mouse_move(GtkWidget *widget, GdkEventMotion *event)
 	}
 
 	mp.MouseMoved(x, y);
+	gtk_widget_queue_draw(widget);
 	return TRUE;
 }
 
@@ -101,7 +102,7 @@ static gboolean on_mapper_button_down(GtkWidget *widget, GdkEventButton *event)
 {
 	if (event->button == 1)
 	{
-		if (event->state == 0x100)
+		if (event->state != 0x100)
 			mp.MouseDown();
 		else
 			mp.MouseUp();
