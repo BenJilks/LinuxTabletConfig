@@ -36,6 +36,54 @@ void Device::SetMode(int mode)
     XFlush(dpy);
 }
 
+void Device::SetMap(int offset_x, int offset_y, int output_width, int output_height)
+{
+    // Create matrix transform
+	float width = DisplayWidth(dpy, DefaultScreen(dpy));
+    float height = DisplayHeight(dpy, DefaultScreen(dpy));
+	float x = offset_x / width;
+    float y = offset_y / height;
+	float w = output_width / width;
+    float h = output_height / height;
+    float fmatrix[] =
+    {
+        w, 0, x,
+        0, h, y,
+        0, 0, 1
+    };
+
+    // Convert matrix type
+    long matrix[9];
+    for (int i = 0; i < 9; i++)
+        *(float*)(matrix + i) = fmatrix[i];
+
+    // Fetch matrix property
+    Atom matrix_prop = XInternAtom(dpy, "Coordinate Transformation Matrix", True);
+    if (!matrix_prop)
+    {
+        printf("Error: Mapping not supported on this tablet "
+            "(Could not find 'Coordinate Transformation Matrix' property\n");
+        return;
+    }
+
+    // Fetch matrix information
+    Atom type;
+    int format;
+	unsigned long nitems, bytes_after;
+    float *data;
+    XGetDeviceProperty(dpy, dev, matrix_prop, 0, 9, False,
+		AnyPropertyType, &type, &format, &nitems,
+        &bytes_after, (unsigned char**)&data);
+
+    // Set new information
+	XChangeDeviceProperty(dpy, dev, matrix_prop, type, format,
+        PropModeReplace, (unsigned char*)matrix, 9);
+    
+    // Free old info
+    XFree(data);
+    XFlush(dpy);
+}
+
 Device::~Device()
 {
     // Close the device when deleted
@@ -47,6 +95,14 @@ string Monitor::DisplayInfo() const
     return name + " (" + 
         std::to_string(width) + "x" + 
         std::to_string(height) + ")";
+}
+
+void Monitor::MapTo(Device *device) const
+{
+    printf("Mapping tablet to %i %i %i %i\n", 
+        x, y, width, height);
+    
+    device->SetMap(x, y, width, height);
 }
 
 DeviceManager::DeviceManager()
@@ -82,7 +138,8 @@ DeviceManager::DeviceManager()
     {
         XRRMonitorInfo monitor = m[i];
         string name = XGetAtomName(dpy, monitor.name);
-        monitors.emplace_back(name, monitor.width, monitor.height);
+        monitors.emplace_back(name, monitor.x, monitor.y, 
+            monitor.width, monitor.height);
     }
 }
 

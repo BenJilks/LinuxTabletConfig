@@ -9,7 +9,9 @@ static Device *curr_dev = nullptr;
 static Mapper mp(dm);
 
 // Control widgets
+static GtkWidget *mapper_ui = nullptr;
 static GtkWidget *mode_box = nullptr;
+static GtkWidget *monitor_box = nullptr;
 
 static void on_select_devices(GtkComboBox *combo_box, gpointer user_data)
 {
@@ -61,6 +63,16 @@ static void on_select_mode(GtkComboBox *combo_box, gpointer user_data)
 	curr_dev->SetMode(mode);
 }
 
+static void on_select_monitor(GtkComboBox *combo_box, gpointer user_data)
+{
+	int monitor_id = gtk_combo_box_get_active(combo_box);
+	const Monitor &monitor = dm.GetMonitor(monitor_id);
+	mp.SetMonitor(monitor_id);
+	monitor.MapTo(curr_dev);
+
+	gtk_widget_queue_draw(mapper_ui);
+}
+
 static gboolean on_mapper_draw(GtkWidget *widget, cairo_t *cr, gpointer user_data)
 {
 	unsigned int width, height;
@@ -103,21 +115,22 @@ static gboolean on_mapper_button_down(GtkWidget *widget, GdkEventButton *event)
 	if (event->button == 1)
 	{
 		if (event->state != 0x100)
+		{
 			mp.MouseDown();
+		}
 		else
+		{
+			if (curr_dev != nullptr)
+				mp.MapTo(curr_dev);
 			mp.MouseUp();
+		}
 	}
 	return TRUE;
 }
 
-static GtkWidget *tablet_settings()
+static void mode_select(GtkWidget *settings, int pos)
 {
-	GtkWidget *settings, *mode_l, *mapper;
-
-	// Create settings pannel
-	settings = gtk_grid_new();
-	gtk_widget_set_hexpand(settings, TRUE);
-	gtk_widget_set_vexpand(settings, TRUE);
+	GtkWidget *mode_l;
 
 	// Create mode setting UI
 	mode_l = gtk_label_new("Mode");
@@ -127,6 +140,7 @@ static GtkWidget *tablet_settings()
 	g_signal_connect(mode_box, "changed", G_CALLBACK(on_select_mode), NULL);
 	gtk_widget_set_hexpand(mode_box, TRUE);
 	gtk_widget_set_margin_start(mode_box, 10);
+	gtk_widget_set_margin_top(mode_box, 10);
 	
 	// If a device has been selected, then set value, otherwise set to default
 	if (curr_dev != nullptr)
@@ -134,21 +148,66 @@ static GtkWidget *tablet_settings()
 	else
 		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), 0);
 
+	// Add to settings pannel
+	gtk_grid_attach(GTK_GRID(settings), mode_l, 0, pos, 1, 1);
+	gtk_grid_attach(GTK_GRID(settings), mode_box, 1, pos, 1, 1);
+}
+
+static void monitor_select(GtkWidget *settings, int pos)
+{
+	GtkWidget *monitor_l;
+	int i;
+
+	monitor_l = gtk_label_new("Monitor");
+	monitor_box = gtk_combo_box_text_new();
+
+	// Connect change signal
+	g_signal_connect(monitor_box, "changed", 
+		G_CALLBACK(on_select_monitor), NULL);
+
+	// Add monitors to options
+	for (i = 0; i < dm.GetMonitorCount(); i++)
+	{
+		const Monitor &m = dm.GetMonitor(i);
+		gtk_combo_box_text_append_text(
+			GTK_COMBO_BOX_TEXT(monitor_box), 
+			m.GetName().c_str());
+	}
+
+	gtk_widget_set_hexpand(monitor_box, TRUE);
+	gtk_widget_set_margin_start(monitor_box, 10);
+	gtk_widget_set_margin_top(monitor_box, 10);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(monitor_box), 0);
+
+	// Add to settings pannel
+	gtk_grid_attach(GTK_GRID(settings), monitor_l, 0, pos, 1, 1);
+	gtk_grid_attach(GTK_GRID(settings), monitor_box, 1, pos, 1, 1);
+}
+
+static GtkWidget *tablet_settings()
+{
+	GtkWidget *settings;
+
+	// Create settings pannel
+	settings = gtk_grid_new();
+	gtk_widget_set_hexpand(settings, TRUE);
+	gtk_widget_set_vexpand(settings, TRUE);
+
 	// Create tablet map UI
-	mapper = gtk_drawing_area_new();
-	gtk_widget_set_size_request(mapper, 400, 200);
-	gtk_widget_set_vexpand(mapper, True);
-	gtk_widget_set_margin_top(mapper, 10);
-	gtk_widget_set_events(mapper, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
-	g_signal_connect(mapper, "motion_notify_event", G_CALLBACK(on_mapper_mouse_move), NULL);
-	g_signal_connect(mapper, "button_press_event", G_CALLBACK(on_mapper_button_down), NULL);
-	g_signal_connect(mapper, "button_release_event", G_CALLBACK(on_mapper_button_down), NULL);
-	g_signal_connect(mapper, "draw", G_CALLBACK(on_mapper_draw), NULL);
+	mapper_ui = gtk_drawing_area_new();
+	gtk_widget_set_size_request(mapper_ui, 400, 200);
+	gtk_widget_set_vexpand(mapper_ui, True);
+	gtk_widget_set_margin_top(mapper_ui, 10);
+	gtk_widget_set_events(mapper_ui, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+	g_signal_connect(mapper_ui, "motion_notify_event", G_CALLBACK(on_mapper_mouse_move), NULL);
+	g_signal_connect(mapper_ui, "button_press_event", G_CALLBACK(on_mapper_button_down), NULL);
+	g_signal_connect(mapper_ui, "button_release_event", G_CALLBACK(on_mapper_button_down), NULL);
+	g_signal_connect(mapper_ui, "draw", G_CALLBACK(on_mapper_draw), NULL);
 
 	// Add widgets to settings pannel
-	gtk_grid_attach(GTK_GRID(settings), mode_l, 0, 0, 1, 1);
-	gtk_grid_attach(GTK_GRID(settings), mode_box, 1, 0, 1, 1);
-	gtk_grid_attach(GTK_GRID(settings), mapper, 0, 1, 2, 1);
+	mode_select(settings, 0);
+	monitor_select(settings, 1);
+	gtk_grid_attach(GTK_GRID(settings), mapper_ui, 0, 2, 2, 1);
 	return settings;
 }
 

@@ -18,6 +18,9 @@ public:
     void MouseDown();
     void MouseUp();
 
+    void SetMonitor(int id);
+    void MapTo(Device *device) const;
+
 private:
     void DrawMonitor(cairo_t *cr, string name);
     void DrawCorners(cairo_t *cr);
@@ -31,6 +34,7 @@ private:
     float start_x, start_y;
     float end_x, end_y;
     int width, height;
+    int current_monitor;
     const DeviceManager& dm;
 
 };

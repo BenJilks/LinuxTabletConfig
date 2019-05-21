@@ -19,6 +19,7 @@ public:
     Device(Display *dpy, XDeviceInfo info);
     int GetMode();
     void SetMode(int mode);
+    void SetMap(int x, int y, int width, int height);
 
     inline string GetName() const { return name; }
     inline int GetId() const { return id; }
@@ -37,19 +38,21 @@ private:
 class Monitor
 {
 public:
-    Monitor(string name, int w, int h) :
-        name(name), width(w), height(h), asp((float)w / (float)h) {}
+    Monitor(string name, int x, int y, int w, int h) :
+        name(name), x(x), y(y), width(w), height(h), asp((float)w / (float)h) {}
     string DisplayInfo() const;
+    void MapTo(Device *device) const;
     
     inline string GetName() const { return name; }
+    inline int GetX() const { return x; }
+    inline int GetY() const { return y; }
     inline int GetWidth() const { return width; }
     inline int GetHeight() const { return height; }
     inline float GetAspectRatio() const { return asp; }
 
 private:
     string name;
-    int width;
-    int height;
+    int x, y, width, height;
     float asp;
 
 };

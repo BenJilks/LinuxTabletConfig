@@ -8,7 +8,7 @@
 #define CIRCLES True
 
 Mapper::Mapper(const DeviceManager& dm) :
-    dm(dm)
+    dm(dm), current_monitor(0)
 {
     start_x = 0;
     start_y = 0;
@@ -68,7 +68,7 @@ void Mapper::Draw(cairo_t *cr, int width, int height)
     this->width = width;
     this->height = height;
 
-    const Monitor& monitor = dm.GetMonitor(0);
+    const Monitor& monitor = dm.GetMonitor(current_monitor);
     float asp = (float)height / (float)width * monitor.GetAspectRatio();
     map.x = start_x * width;
     map.y = start_y * height;
@@ -144,4 +144,19 @@ void Mapper::MouseDown()
 void Mapper::MouseUp()
 {
     dragging = false;
+}
+
+void Mapper::SetMonitor(int id)
+{
+    current_monitor = id;
+}
+
+void Mapper::MapTo(Device *device) const
+{
+    const Monitor &monitor = dm.GetMonitor(current_monitor);
+    int w = monitor.GetWidth() / (end_x - start_x);
+    int h = monitor.GetHeight() / (end_y - start_y);
+    int x = monitor.GetX() - (start_x * monitor.GetWidth()) / (end_x - start_x);
+    int y = monitor.GetY() - (start_y * monitor.GetHeight()) / (end_y - start_y);
+    device->SetMap(x, y, w, h);
 }
