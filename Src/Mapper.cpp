@@ -160,3 +160,18 @@ void Mapper::MapTo(Device *device) const
     int y = monitor.GetY() - (start_y * monitor.GetHeight()) / (end_y - start_y);
     device->SetMap(x, y, w, h);
 }
+
+void Mapper::SetMapping(float start_x, float end_x, 
+    float start_y, float end_y)
+{
+    this->start_x = start_x;
+    this->end_x = end_x;
+    this->start_y = start_y;
+    this->end_y = end_y;
+}
+
+string Mapper::GetAreaString() const
+{
+    return std::to_string(start_x) + "," + std::to_string(end_x) +
+        "," + std::to_string(start_y) + "," + std::to_string(end_y);
+}

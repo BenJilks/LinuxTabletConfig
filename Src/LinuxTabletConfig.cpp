@@ -1,7 +1,18 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <algorithm> 
 #include <gtk/gtk.h>
+#include <pwd.h>
+#include <sys/stat.h>
 #include "DeviceManager.hpp"
 #include "Mapper.hpp"
+using std::string;
+
+// User Directory
+static string data_path = "/.local/share/LinuxTabletConfig";
+static struct passwd *pw = getpwuid(getuid());
+static string home_dir = "";
 
 // Devices
 static const DeviceManager dm;
@@ -12,6 +23,90 @@ static Mapper mp(dm);
 static GtkWidget *mapper_ui = nullptr;
 static GtkWidget *mode_box = nullptr;
 static GtkWidget *monitor_box = nullptr;
+
+// trim from start
+static inline string &ltrim(string &s) 
+{
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+        std::not1(std::ptr_fun<int, int>(std::isspace))));
+    return s;
+}
+
+// trim from end
+static inline string &rtrim(string &s) 
+{
+    s.erase(std::find_if(s.rbegin(), s.rend(),
+        std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    return s;
+}
+
+// trim from both ends
+static inline string &trim(string &s) 
+{
+    return ltrim(rtrim(s));
+}
+
+static void load_value(string key, string value)
+{
+	std::cout << key << " = " << value << std::endl;
+	if (key == "mode")
+	{
+		gtk_combo_box_set_active(GTK_COMBO_BOX(mode_box), 
+			value == "absolute" ? 0 : 1);
+	}
+	else if (key == "monitor")
+	{
+		int monitor = atoi(value.c_str());
+		mp.SetMonitor(monitor);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(monitor_box), monitor);
+	}
+	else if (key == "area")
+	{
+		float start_x, end_x, start_y, end_y;
+		sscanf(value.c_str(), "%f,%f,%f,%f", 
+			&start_x, &end_x, &start_y, &end_y);
+
+		mp.SetMapping(start_x, end_x, start_y, end_y);
+		gtk_widget_queue_draw(mapper_ui);
+	}
+}
+
+// Load the current state from the config file
+static void load_info()
+{
+	struct stat info;
+	string line;
+	string key, value;
+
+	// Check if directory exists
+	home_dir = string(pw->pw_dir) + data_path;
+	if(stat(home_dir.c_str(), &info) != 0)
+		mkdir(home_dir.c_str(), 0777);
+	
+	string config_path = home_dir + "/tablet.conf";
+	std::ifstream file(config_path);
+	if (file.good())
+	{
+		while (std::getline(file, line))
+		{
+			std::istringstream line_s(line);
+			if (std::getline(line_s, key, '=') && std::getline(line_s, value))
+				load_value(trim(key), trim(value));
+		}
+	}
+}
+
+// Save the state to the config file
+static void save_info()
+{
+	std::cout << "Saving config..." << std::endl;
+
+	string config_path = home_dir + "/tablet.conf";
+	std::ofstream file(config_path);
+	file << "mode = " << (curr_dev->GetMode() ? "relative" : "absolute") << std::endl;
+	file << "monitor = " << mp.GetMonitor() << std::endl;
+	file << "area = " << mp.GetAreaString() << std::endl;
+}
 
 static void on_select_devices(GtkComboBox *combo_box, gpointer user_data)
 {
@@ -232,6 +327,7 @@ static void activate(GtkApplication* app, gpointer user_data)
 	gtk_container_add(GTK_CONTAINER(content), dev_select);
 	gtk_container_add(GTK_CONTAINER(content), settings);
 	gtk_container_add(GTK_CONTAINER(window), content);
+	load_info();
 
 	// Show UI content
 	gtk_widget_show_all(window);
@@ -247,5 +343,6 @@ int main (int argc, char **argv)
 	status = g_application_run(G_APPLICATION (app), argc, argv);
 	g_object_unref(app);
 
+	save_info();
 	return status;
 }
