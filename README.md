@@ -11,7 +11,7 @@ Simply run
 	sudo make install
 
 ## Startup
-To apply you configuration on startup, you'll need to add this command to your startup scripts
+To apply your configuration on startup, you'll need to add this command to your startup scripts:
 
 	LinuxTabletConfig --startup
 
