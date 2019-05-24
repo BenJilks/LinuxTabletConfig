@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Linux Tablet Config
+GenericName=Tablet Settings
+Comment=GUI for configuring tablets
+Keywords=tablet;settings;config;
+Exec=LinuxTabletConfig
+Terminal=false
+Type=Application
+Categories=Settings;System;

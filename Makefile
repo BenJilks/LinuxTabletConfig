@@ -50,3 +50,9 @@ $(BUILD_PATH)/%.o: $(SRC_PATH)/%.cpp
 .PHONY: install
 install: 
 	cp bin/LinuxTabletConfig /bin/LinuxTabletConfig
+	cp LinuxTabletConfig.desktop /usr/share/applications/LinuxTabletConfig.desktop
+
+.PHONY: uninstall
+uninstall: 
+	rm /bin/LinuxTabletConfig
+	rm /usr/share/applications/LinuxTabletConfig.desktop

@@ -94,6 +94,9 @@ static void load_info()
 				load_value(trim(key), trim(value));
 		}
 	}
+
+	if (curr_dev != nullptr)
+		mp.MapTo(curr_dev);
 }
 
 // Save the state to the config file
@@ -338,9 +341,31 @@ int main (int argc, char **argv)
 	GtkApplication *app;
 	int status;
 
+	vector<char*> gtk_argv = { argv[0] };
+	for (int i = 1; i < argc; i++)
+	{
+		if (!strcmp(argv[i], "--startup"))
+		{
+			if (!dm.HasDevices())
+			{
+				std::cout << "Could not find any devices" << std::endl;
+				return -1;
+			}
+
+			curr_dev = dm.DefaultDevice();
+			load_info();
+			return 0;
+		}
+		else
+		{
+			gtk_argv.push_back(argv[i]);
+		}
+	}
+
+
 	app = gtk_application_new("org.benjilks.linuxtabletconfig", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK (activate), NULL);
-	status = g_application_run(G_APPLICATION (app), argc, argv);
+	status = g_application_run(G_APPLICATION (app), gtk_argv.size(), &gtk_argv[0]);
 	g_object_unref(app);
 
 	save_info();
