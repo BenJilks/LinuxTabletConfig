@@ -63,6 +63,7 @@ public:
     DeviceManager();
     vector<string> DeviceNames() const;
     Device *DeviceByName(string name) const;
+    const Monitor& GetMonitorByName(string name) const;
 
     inline bool HasDevices() const { return devices.size() > 0; }
     inline Device* DefaultDevice() const { return devices[0]; }

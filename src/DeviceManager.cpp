@@ -110,6 +110,7 @@ DeviceManager::DeviceManager()
     // Open display and get tablet type id
     dpy = XOpenDisplay(nullptr);
     Atom styles_type = XInternAtom(dpy, "STYLUS", True);
+    Atom tablet_type = XInternAtom(dpy, "TABLET", True);
 
     // Fetch the xinput devices
     int	ndevices;
@@ -122,7 +123,7 @@ DeviceManager::DeviceManager()
         if (info[i].type != 0L)
         {
             printf("%s (%s)\n", info[i].name, XGetAtomName(dpy, info[i].type));
-            if (info[i].type == styles_type)
+            if (info[i].type == styles_type || info[i].type == tablet_type)
             {
                 Device* dev = new Device(dpy, info[i]);
                 devices.emplace_back(dev);
@@ -150,6 +151,15 @@ Device *DeviceManager::DeviceByName(string name) const
         if (dev->GetName() == name)
             return dev;
     return nullptr;
+}
+
+const Monitor& DeviceManager::GetMonitorByName(string name) const
+{
+    for (const Monitor &monitor : monitors)
+        if (monitor.GetName() == name)
+            return monitor;
+    
+    return monitors[0];
 }
 
 // Return a list of device names
