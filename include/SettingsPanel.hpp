@@ -1,10 +1,11 @@
 #pragma once
 
+#include <gtkmm/button.h>
 #include <gtkmm/grid.h>
 #include <gtkmm/label.h>
 #include <gtkmm/comboboxtext.h>
 #include "DeviceManager.hpp"
-#include "Mapper.hpp"
+#include "MapperSettings.hpp"
 #include "Config.hpp"
 
 class SettingsPanel : public Gtk::Grid
@@ -30,5 +31,5 @@ private:
     Gtk::ComboBoxText mode_select;
     Gtk::ComboBoxText monitor_select;
 
-    Mapper mapper;
+    MapperSettings mapper;
 };

@@ -18,6 +18,7 @@ class Device
 public:
     Device(Display *dpy, XDeviceInfo info);
     int GetMode();
+    float GetAspectRatio();
     void SetMode(int mode);
     void SetMap(int x, int y, int width, int height);
 

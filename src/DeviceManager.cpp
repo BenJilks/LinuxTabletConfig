@@ -30,6 +30,23 @@ int Device::GetMode()
     return 0;
 }
 
+float Device::GetAspectRatio()
+{
+    Atom type, prop = XInternAtom(dpy, "Wacom Tablet Area", True);
+    unsigned long count, bytes_after;
+	unsigned char* data;
+    int format;
+
+    XGetDeviceProperty(dpy, dev, prop, 
+        0, 1000, False, AnyPropertyType, 
+        &type, &format, &count, &bytes_after, &data);
+    
+    long *ldata = (long*)data;
+    long width = ldata[2];
+    long height = ldata[3];
+    return (float)width / (float)height;
+}
+
 void Device::SetMode(int mode)
 {
     XSetDeviceMode(dpy, dev, mode ? 0 : 1);

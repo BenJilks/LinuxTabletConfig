@@ -10,6 +10,8 @@
 Mapper::Mapper(const DeviceManager& dm) 
     : Gtk::DrawingArea()
     , current_monitor(0)
+    , device_aspect_ratio(1)
+    , monitor_aspect_ratio(1)
     , dm(dm)
 {
     const int margin = 5;
@@ -138,6 +140,16 @@ bool Mapper::MouseMoved(GdkEventMotion* motion_event)
             start_y += delta_y * (corner.second > 0 ? 0 : 1);
             end_x += delta_x * (corner.first > 0 ? 1 : 0);
             end_y += delta_y * (corner.second > 0 ? 1 : 0);
+
+            // Force aspect ratio if enabled
+            if (keep_aspect)
+            {
+                float aspect_ratio = monitor_aspect_ratio / device_aspect_ratio;
+                if (corner.first == 0)
+                    start_x = end_x - ((end_y - start_y) * aspect_ratio);  
+                else
+                    end_x = start_x + ((end_y - start_y) * aspect_ratio);
+            }
         }
 
         // Make sure the box does not invert
@@ -170,6 +182,32 @@ bool Mapper::MouseMoved(GdkEventMotion* motion_event)
     return true;
 }
 
+void Mapper::Fill()
+{
+    start_x = 0;
+    start_y = 0;
+    end_x = 1;
+    end_y = 1;
+
+    if (keep_aspect)
+    {
+        float aspect_ratio = device_aspect_ratio / monitor_aspect_ratio;
+        printf("%f - %f = %f\n", device_aspect_ratio, monitor_aspect_ratio, aspect_ratio);
+        if (aspect_ratio < 1.0)
+        {
+            start_y = (1.0 - aspect_ratio) / 2.0;
+            end_y = start_y + aspect_ratio;
+        }
+        else
+        {
+            aspect_ratio = 1.0 / aspect_ratio;
+            start_x = (1.0 - aspect_ratio) / 2.0;
+            end_x = start_x + aspect_ratio;
+        }
+    }
+    queue_draw();
+}
+
 bool Mapper::MouseDown(GdkEventButton*)
 {
     if (corner_selected != -1 || body_selected)
@@ -187,9 +225,23 @@ bool Mapper::MouseUp(GdkEventButton*)
     return true;
 }
 
+void Mapper::SetDevice(Device *device)
+{
+    device_aspect_ratio = device->GetAspectRatio();
+}
+
 void Mapper::SetMonitor(int id)
 {
+    monitor_aspect_ratio = dm.GetMonitor(id).GetAspectRatio();
     current_monitor = id;
+}
+
+void Mapper::SetMap(array<float, 4> map)
+{
+    start_x = map[0]; 
+    start_y = map[1]; 
+    end_x = map[2]; 
+    end_y = map[3];
 }
 
 void Mapper::MapTo(Device *device) const

@@ -5,7 +5,6 @@ SettingsPanel::SettingsPanel(const DeviceManager &dm, Config &config)
     , mode_label("Mode: ")
     , monitor_label("Monitor: ")
     , mapper(dm)
-    , mapper_settings(Gtk::Orientation::ORIENTATION_VERTICAL)
     , dm(dm)
     , config(config)
 {
@@ -48,7 +47,8 @@ void SettingsPanel::SelectDevice(Device *device)
     monitor_select.set_active_text(device_config.GetMonitor());
 
     mapper.SetMap(device_config.GetMap());
-    mapper.queue_draw();
+    mapper.SetDevice(device);
+    mapper.Update();
 }
 
 void SettingsPanel::ModeChanged()

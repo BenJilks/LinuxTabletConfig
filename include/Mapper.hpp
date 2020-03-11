@@ -16,11 +16,12 @@ class Mapper : public Gtk::DrawingArea
 public:
     Mapper(const DeviceManager& dm);
 
+    void SetDevice(Device *device);
     void SetMonitor(int id);
+    void SetMap(array<float, 4> map);
+    void Fill();
 
-    void SetMap(array<float, 4> map) 
-        { start_x = map[0]; start_y = map[1]; 
-          end_x = map[2]; end_y = map[3]; }
+    inline void SetKeepAspect(bool flag) { keep_aspect = flag; }
 
     inline array<float, 4> GetMap() const 
         { return { start_x, start_y, end_x, end_y }; }
@@ -45,14 +46,17 @@ private:
 
     Gdk::Rectangle map;
     array<pair<int, int>, 4> corners;
-    int corner_selected;
-    bool dragging, body_selected;
     pair<int, int> last_mouse_pos;
     std::function<void()> on_changed;
+    float device_aspect_ratio;
+    float monitor_aspect_ratio;
 
+    int current_monitor;
     float start_x, start_y;
     float end_x, end_y;
-    int current_monitor;
+    bool dragging, body_selected;
+    bool keep_aspect;
+    int corner_selected;
     const DeviceManager& dm;
 
 };
