@@ -37,9 +37,13 @@ float Device::GetAspectRatio()
 	unsigned char* data;
     int format;
 
+    data = nullptr;
     XGetDeviceProperty(dpy, dev, prop, 
         0, 1000, False, AnyPropertyType, 
         &type, &format, &count, &bytes_after, &data);
+    
+    if (!data)
+        return 1;
     
     long *ldata = (long*)data;
     long width = ldata[2];
