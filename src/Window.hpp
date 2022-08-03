@@ -1,28 +1,28 @@
 #pragma once
 
-#include <gtkmm.h>
-#include <gtkmm/window.h>
-#include <gtkmm/label.h>
-#include <gtkmm/comboboxtext.h>
-#include "SettingsPanel.hpp"
+#include <QMainWindow>
+#include <QComboBox>
 #include "DeviceManager.hpp"
+#include "SettingsPanel.hpp"
 #include "Config.hpp"
 
-class LTCWindow : public Gtk::Window
+class LTCWindow : public QMainWindow
 {
+    Q_OBJECT
+
 public:
-    LTCWindow(const DeviceManager &dm, Config &config);
+    LTCWindow(const DeviceManager &dm, Config &config,
+              QWidget *parent = nullptr);
+
+    virtual ~LTCWindow() = default;
 
 private:
     void DeviceSelected();
 
+    QComboBox *device_select { nullptr };
+    SettingsPanel *settings { nullptr };
+
     const DeviceManager &dm;
     Config &config;
-
-    Gtk::Box layout;
-    Gtk::Box device_layout;
-    Gtk::Label device_label;
-    Gtk::ComboBoxText device_select;
-    SettingsPanel settings;
 
 };

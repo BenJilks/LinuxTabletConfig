@@ -1,49 +1,48 @@
 #include "Window.hpp"
-#include "gtkmm/button.h"
+#include <QLabel>
+#include <QBoxLayout>
 
-LTCWindow::LTCWindow(const DeviceManager &dm, Config &config) 
-    : layout(Gtk::Orientation::ORIENTATION_VERTICAL)
-    , device_layout(Gtk::Orientation::ORIENTATION_HORIZONTAL)
-    , device_label("Device: ")
-    , settings(dm, config)
+LTCWindow::LTCWindow(const DeviceManager &dm, Config &config, QWidget *parent)
+    : QMainWindow(parent, {})
     , dm(dm)
     , config(config)
 {
-    set_title("Linux Tablet Config");
-    set_events(
-          Gdk::POINTER_MOTION_MASK 
-        | Gdk::BUTTON_PRESS_MASK 
-        | Gdk::BUTTON_RELEASE_MASK);
+    setWindowTitle("Linux Tablet Config");
 
-    const int margin = 6;
-    layout.set_margin_top(margin);
-    layout.set_margin_bottom(margin);
-    layout.set_margin_left(margin);
-    layout.set_margin_right(margin);
+    auto main_widget = new QWidget(this);
+    auto layout = new QBoxLayout(QBoxLayout::Direction::Down);
+    layout->setMargin(6);
+    main_widget->setLayout(layout);
+    setCentralWidget(main_widget);
 
-    // Build device select
-    device_select.set_hexpand(true);
-    device_select.signal_changed().connect(
-        sigc::mem_fun(this, &LTCWindow::DeviceSelected));
+    auto device_widget = new QWidget(main_widget);
+    auto device_layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight);
+    device_widget->setLayout(device_layout);
+    layout->addWidget(device_widget);
 
+    auto device_label = new QLabel("Device: ", device_widget);
+    device_layout->addWidget(device_label);
+
+    device_select = new QComboBox(device_widget);
+    device_select->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
+    device_layout->addWidget(device_select);
     if (dm.HasDevices())
     {
         for (auto name : dm.DeviceNames())
-            device_select.append(name);
-        device_select.set_active_text(dm.DeviceNames()[0]);
+            device_select->addItem(name.c_str());
     }
-    device_layout.add(device_label);
-    device_layout.add(device_select);
 
-    layout.add(device_layout);
-    layout.add(settings);
-    add(layout);
-    show_all_children();
+    settings = new SettingsPanel(dm, config, main_widget);
+    layout->addWidget(settings);
+
+    connect(device_select, &QComboBox::currentTextChanged, this, &LTCWindow::DeviceSelected);
+    DeviceSelected();
 }
 
 void LTCWindow::DeviceSelected()
 {
-    auto device_name = device_select.get_active_text();
+    auto device_name = device_select->currentText().toStdString();
     auto device = dm.DeviceByName(device_name);
-    settings.SelectDevice(device);
+    settings->SelectDevice(device);
 }
+
