@@ -1,29 +1,29 @@
 #pragma once
+
+#include <QWidget>
 #include <functional>
 #include <vector>
 #include <string>
 #include <array>
-#include <gtkmm/drawingarea.h>
 #include "DeviceManager.hpp"
 #include "VectorWidget.hpp"
-using std::vector;
-using std::string;
-using std::array;
-using std::pair;
 
-class Mapper : public Gtk::DrawingArea
+class Mapper : public QWidget
 {
+    Q_OBJECT
+
 public:
-    Mapper(const DeviceManager& dm);
+    Mapper(const DeviceManager& dm, QWidget *parent = nullptr);
+    virtual ~Mapper() = default;
 
     void SetDevice(Device *device);
     void SetMonitor(int id);
-    void SetMap(array<float, 4> map);
+    void SetMap(std::array<float, 4> map);
     void Fill();
 
     inline void SetKeepAspect(bool flag) { keep_aspect = flag; }
 
-    inline array<float, 4> GetMap() const 
+    inline std::array<float, 4> GetMap() const 
         { return { start_x, start_y, end_x, end_y }; }
     
     inline int GetMonitor() const { return current_monitor; }
@@ -35,28 +35,38 @@ public:
         float start_y, float end_y);
     string GetAreaString() const;
 
+protected:
+    void mouseMoveEvent(QMouseEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+    void paintEvent(QPaintEvent*) override;
+
 private:
-    bool Draw(const Cairo::RefPtr<Cairo::Context>& cr);
-    void DrawMonitor(const Cairo::RefPtr<Cairo::Context>& cr, string name);
-    void DrawCorners(const Cairo::RefPtr<Cairo::Context>& cr);
+    void draw_monitor(string name);
+    void draw_corners();
 
-    bool MouseMoved(GdkEventMotion* motion_event);
-    bool MouseDown(GdkEventButton*);
-    bool MouseUp(GdkEventButton*);
+    struct Rectangle
+    {
+        int x { 0 };
+        int y { 0 };
+        int width { 0 };
+        int height { 0 };
+    };
 
-    Gdk::Rectangle map;
-    array<pair<int, int>, 4> corners;
-    pair<int, int> last_mouse_pos;
+    Rectangle map;
+    std::array<std::pair<int, int>, 4> corners;
+    std::pair<int, int> last_mouse_pos;
     std::function<void()> on_changed;
-    float device_aspect_ratio;
-    float monitor_aspect_ratio;
+    float device_aspect_ratio { 1 };
+    float monitor_aspect_ratio { 1 };
 
-    int current_monitor;
-    float start_x, start_y;
-    float end_x, end_y;
-    bool dragging, body_selected;
-    bool keep_aspect;
-    int corner_selected;
+    int current_monitor { 0 };
+    float start_x { 0 };
+    float start_y { 0 };
+    float end_x { 1 };
+    float end_y { 1 };
+    bool body_selected { false };
+    bool keep_aspect { false };
+    int corner_selected { -1 };
     const DeviceManager& dm;
-
 };
