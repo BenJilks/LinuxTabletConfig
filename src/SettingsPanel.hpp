@@ -1,17 +1,20 @@
 #pragma once
 
-#include <gtkmm/button.h>
-#include <gtkmm/grid.h>
-#include <gtkmm/label.h>
-#include <gtkmm/comboboxtext.h>
+#include <QWidget>
+#include <QComboBox>
 #include "DeviceManager.hpp"
 #include "MapperSettings.hpp"
 #include "Config.hpp"
 
-class SettingsPanel : public Gtk::Grid
+class SettingsPanel : public QWidget
 {
+    Q_OBJECT
+
 public:
-    SettingsPanel(const DeviceManager &dm, Config &config);
+    SettingsPanel(const DeviceManager &dm, Config &config,
+                  QWidget *parent = nullptr);
+
+    virtual ~SettingsPanel() = default;
 
     void SelectDevice(Device *device);
 
@@ -23,13 +26,10 @@ private:
     const DeviceManager &dm;
     Config &config;
 
-    Device *device;
+    QComboBox *mode_select { nullptr };
+    QComboBox *monitor_select { nullptr };
+    MapperSettings *mapper { nullptr };
+
+    Device *device { nullptr };
     Config::Device device_config;
-
-    Gtk::Label mode_label;
-    Gtk::Label monitor_label;
-    Gtk::ComboBoxText mode_select;
-    Gtk::ComboBoxText monitor_select;
-
-    MapperSettings mapper;
 };
