@@ -1,8 +1,14 @@
 #include "DeviceManager.hpp"
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/extensions/XInput.h>
+#include <X11/extensions/Xrandr.h>
+#include <X11/extensions/Xinerama.h>
+#include <X11/XKBlib.h>
 #include <iostream>
 
 Device::Device(Display *dpy, XDeviceInfo info) :
-    dpy(dpy), name(info.name), id(info.id), info(info)
+    dpy(dpy), name(info.name), id(info.id), info(new XDeviceInfo(info))
 {
     // Open the Xinput device
     dev = XOpenDevice(dpy, id);
@@ -10,8 +16,8 @@ Device::Device(Display *dpy, XDeviceInfo info) :
 
 XValuatorInfoPtr Device::GetClass(XID c_class)
 {
-    XValuatorInfoPtr v = (XValuatorInfoPtr)info.inputclassinfo;
-    for (int i = 0; i < info.num_classes; i++)
+    XValuatorInfoPtr v = (XValuatorInfoPtr)info->inputclassinfo;
+    for (int i = 0; i < info->num_classes; i++)
     {
         if (v->c_class == ValuatorClass)
             return v;
@@ -38,7 +44,7 @@ float Device::GetAspectRatio()
     int format;
 
     data = nullptr;
-    XGetDeviceProperty(dpy, dev, prop, 
+    XGetDeviceProperty(dpy, (XDevice*)dev, prop, 
         0, 1000, False, AnyPropertyType, 
         &type, &format, &count, &bytes_after, &data);
     
@@ -53,7 +59,7 @@ float Device::GetAspectRatio()
 
 void Device::SetMode(int mode)
 {
-    XSetDeviceMode(dpy, dev, mode ? 0 : 1);
+    XSetDeviceMode(dpy, (XDevice*)dev, mode ? 0 : 1);
     XFlush(dpy);
 }
 
@@ -92,12 +98,12 @@ void Device::SetMap(int offset_x, int offset_y, int output_width, int output_hei
     int format;
 	unsigned long nitems, bytes_after;
     float *data;
-    XGetDeviceProperty(dpy, dev, matrix_prop, 0, 9, False,
+    XGetDeviceProperty(dpy, (XDevice*)dev, matrix_prop, 0, 9, False,
 		AnyPropertyType, &type, &format, &nitems,
         &bytes_after, (unsigned char**)&data);
 
     // Set new information
-	XChangeDeviceProperty(dpy, dev, matrix_prop, type, format,
+	XChangeDeviceProperty(dpy, (XDevice*)dev, matrix_prop, type, format,
         PropModeReplace, (unsigned char*)matrix, 9);
     
     // Free old info
@@ -108,7 +114,7 @@ void Device::SetMap(int offset_x, int offset_y, int output_width, int output_hei
 Device::~Device()
 {
     // Close the device when deleted
-    XCloseDevice(dpy, dev);
+    XCloseDevice(dpy, (XDevice*)dev);
 }
 
 string Monitor::DisplayInfo() const
@@ -135,7 +141,7 @@ DeviceManager::DeviceManager()
 
     // Fetch the xinput devices
     int	ndevices;
-    info = XListInputDevices(dpy, &ndevices);
+    auto info = XListInputDevices(dpy, &ndevices);
     devices.reserve(ndevices);
 
     // Load the tablet devices
@@ -163,6 +169,8 @@ DeviceManager::DeviceManager()
         monitors.emplace_back(name, monitor.x, monitor.y, 
             monitor.width, monitor.height);
     }
+
+    this->info = info;
 }
 
 // Returns the device with that name

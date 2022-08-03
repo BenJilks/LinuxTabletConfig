@@ -1,17 +1,17 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/extensions/XInput.h>
-#include <X11/extensions/Xrandr.h>
-#include <X11/extensions/Xinerama.h>
-#include <X11/XKBlib.h>
+#include <memory>
 using std::vector;
 using std::string;
 
 #define MODE_ABSOLUTE 0
 #define MODE_RELATIVE 1
+
+typedef struct _XDisplay Display;
+typedef struct _XDeviceInfo XDeviceInfo;
+typedef struct _XValuatorInfo XValuatorInfo;
+typedef unsigned long XID;
 
 class Device
 {
@@ -27,12 +27,12 @@ public:
     ~Device();
 
 private:
-    XValuatorInfoPtr GetClass(XID c_class);
+    XValuatorInfo *GetClass(XID c_class);
 
     string name;
     long unsigned int id;
-    XDeviceInfo info;
-    XDevice *dev;
+    void *dev;
+    std::unique_ptr<XDeviceInfo> info;
     Display *dpy;
 };
 
