@@ -29,7 +29,6 @@ void Config::SaveDevice(Device device)
     std::ofstream file(path);
     file << config;
     file.close();
-    printf("Saved to %s\n", path.c_str());
 }
 
 int Config::Device::GetMode() const
