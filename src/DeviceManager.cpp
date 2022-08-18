@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, Ben Jilks <benjyjilks@gmail.com>
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 #include "DeviceManager.hpp"
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
